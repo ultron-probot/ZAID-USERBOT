@@ -1,9 +1,28 @@
+# Base image
 FROM python:3.9-slim-bookworm
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install git curl python3-pip ffmpeg -y
-RUN pip3 install -U pip
-RUN python3 -m pip install --upgrade pip
+
+# Prevent interactive prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update OS and install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    ffmpeg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN python3 -m pip install --upgrade pip --no-cache-dir
+
+# Set workdir
+WORKDIR /app
+
+# Copy all files
 COPY . /app/
-WORKDIR /app/
-RUN pip3 install -U -r requirements.txt
-CMD ["bash","start.sh"]
+
+# Install Python requirements
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Set default command
+CMD ["bash", "start.sh"]
